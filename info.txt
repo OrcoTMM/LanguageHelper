@@ -1,0 +1,38 @@
+var ROOT:File = File.documentsDirectory.resolvePath("/sdcard/");
+var FILES:Array = ROOT.getDirectoryListing();
+var TrackN:int;
+var SUBFOLDER:String;
+for (var i:int = 0; i < FILES.length; i++)
+{
+	var File_Ext:String;
+	File_Ext = "" + FILES[i].extension;
+	if (File_Ext.toLowerCase() == "mp3")
+	{
+		TrackN++;
+		list.addItem( { label:FILES[i].name, data:TrackN, Song:FILES[i].url} );
+	}
+	if (FILES[i].isDirectory == true)
+	{
+		SUBFOLDER = "" + FILES[i].nativePath;
+		getSubfolders();
+	}
+	function getSubfolders()
+	{
+		var SUBF:File = File.documentsDirectory.resolvePath(SUBFOLDER);
+		var FLIST:Array = SUBF.getDirectoryListing();
+		for (var s:int = 0; s < FLIST.length; s++)
+		{
+			File_Ext = "" + FLIST[s].extension;
+			if (File_Ext.toLowerCase() == "mp3")
+			{
+				TrackN++;
+				list.addItem( { label:FLIST[s].name, data:TrackN, Song:FLIST[s].url} );
+			}
+			if (FLIST[s].isDirectory == true)
+			{
+				SUBFOLDER = "" + FLIST[s].nativePath;
+				getSubfolders();
+			}
+		}
+	}
+}

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		title="Input"
+		contentCreationComplete="creationComplete(event)">
+
+	<fx:Declarations>
+		<fx:Component className="AlertMsg">
+			<s:SkinnablePopUpContainer visible="false">
+				<s:TitleWindow title="Info" close="close()" fontSize="18" fontFamily="Arial" width="300">
+					<s:VGroup horizontalAlign="center" paddingTop="8" paddingBottom="8" paddingLeft="8" paddingRight="8" gap="5" width="100%">
+						<s:Label id="messageLabel" text="" fontSize="12" fontFamily="Arial"/>
+						<s:Button label="OK" click="close()" fontSize="12" fontFamily="Arial" width="50" height="40" textAlignLast="center"/>
+					</s:VGroup>
+				</s:TitleWindow>
+			</s:SkinnablePopUpContainer>
+		</fx:Component>
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import com.dbClasses.DBManager;
+			import com.vo.dbEntryItem;
+			import com.vo.languageMessages;
+			
+			import events.DBEvent;
+			import flash.events.Event;
+			
+			import mx.collections.*;
+			import mx.core.FlexGlobals;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			
+			private var _dbManager:DBManager;
+			private var _sqlVo:dbEntryItem;
+			private var _alertMsg:AlertMsg;
+			
+			private function initData ():void {}
+			
+			protected function creationComplete (event:FlexEvent):void {
+				initData();
+				input_my.tabIndex	= 1;
+				input_en.tabIndex	= 1;
+				input_de.tabIndex	= 1;
+				but_add.tabIndex	= 1;
+				but_clear.tabIndex	= 1;
+			}
+			protected function popAlert(str:String=""):void{
+				var myAlert:AlertMsg		= new AlertMsg();
+				myAlert.open(this, false)
+				myAlert.messageLabel.text	= str;
+				myAlert.x					= (FlexGlobals.topLevelApplication as UIComponent).width/2 - myAlert.width/2;
+				myAlert.y					= 200;
+				myAlert.visible				= true;
+			}
+			private function clearEntries(e:MouseEvent=null):void{
+				_sqlVo			= null;
+				input_my.text	= "";
+				input_en.text	= "";
+				input_de.text	= "";
+			}
+			private function checkEmpty():Boolean{
+				if(input_my.text == "" &&
+					input_en.text == "" &&
+					input_de.text == ""){
+					popAlert((new languageMessages).addEntry_empty);
+					return false;
+				}else{
+					return true;
+				}
+			}
+			private function addToDB(e:MouseEvent):void {
+				//put check in proxy
+				if(!checkEmpty()){return;}
+				//can proceed
+				_sqlVo					= new dbEntryItem();
+				_sqlVo.voc_Malay		= input_my.text;
+				_sqlVo.voc_English		= input_en.text;
+				_sqlVo.voc_German		= input_de.text;
+				if(_dbManager)
+				{
+					checkEntryExists();
+				}else{
+					_dbManager	= new DBManager();
+					_dbManager.addEventListener(DBEvent.DB_FAILED, onDBFailed);
+					_dbManager.addEventListener(DBEvent.DB_SUCCESS, onDBSuccess);
+					_dbManager.addEventListener(DBEvent.DB_BUSY, onDBBusy);
+					_dbManager.addEventListener(DBEvent.SQL_FAILED, onSQLFailed);
+					_dbManager.addEventListener(DBEvent.SQL_UPDATED, onSQLUpdated);
+					_dbManager.addEventListener(DBEvent.SQL_SELECTED, onSQLSelected);
+					_dbManager.initialise();
+				}
+				//test all fields are entered correctly (can probably do when selecting already in addition but not only)
+			}
+			private function resetMe(str:String=null):void{
+				clearEntries();
+				str ? popAlert(str) : true;
+			}
+			//ALL THE FAILED EVENTS
+			private function onDBFailed(e:Event):void{
+				resetMe("DB could not be opened!");
+			}
+			private function onDBBusy(e:DBEvent):void{
+				resetMe("try again later, DB busy");
+			}
+			private function onSQLFailed(e:ErrorEvent):void{
+				resetMe("failed updating DB "+e.errorID+" : "+e.text);
+			}
+			//JUST CHECK IF ALREADY EXISTS
+			private function onDBSuccess(e:DBEvent=null):void{
+				checkEntryExists();
+			}
+			private function checkEntryExists():void{
+				//select before add
+				_dbManager.selectEntry(_sqlVo);
+			}
+			//ACTUALLY UPDATE NOW
+			private function onSQLSelected(e:DBEvent):void{
+				if(e.dataObj && e.dataObj != null){
+					var sel:Array		= e.dataObj["selection"];
+					var tmpStr:String	= "";
+					for(var i:int=0; i<sel.length; i++){
+						tmpStr += "\n"+sel[i];
+					}
+					resetMe("entry already exist"+tmpStr);
+					
+				}else{
+					addSQL();
+				}
+			}
+			private function addSQL():void{
+				var _sqlVo:dbEntryItem	= new dbEntryItem();
+				_sqlVo.voc_Malay		= input_my.text;
+				_sqlVo.voc_English		= input_en.text;
+				_sqlVo.voc_German		= input_de.text;
+				_dbManager.addEntry(_sqlVo);
+			}
+			private function onSQLUpdated(e:DBEvent):void{
+				resetMe("added entry to DB");
+			}
+			protected function btn_back_clickHandler(event:MouseEvent):void
+			{
+				resetMe();
+				navigator.popView();
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="left">
+		<s:Spacer height="5"/>
+		<s:HGroup horizontalAlign="left" verticalAlign="middle">
+			<s:Spacer width="5"/>
+			<s:Button id="btn_back" click="btn_back_clickHandler(event)" width="30" height="30" styleName="back"/>
+			<s:Spacer width="10"/>
+			<s:Label left="0" text="Input languages" fontSize="30" fontWeight="bold"/>
+		</s:HGroup>
+		<s:Spacer width="5"/>
+		<s:Line xFrom="0" xTo="{this.width}">
+			<s:stroke>
+				<s:SolidColorStroke color="0x000000" weight="1" caps="square"/>
+			</s:stroke>
+		</s:Line>
+		<s:Spacer height="10"/>
+		<s:VGroup left="2" id="grp1" buttonMode="true" mouseChildren="true" horizontalAlign="left" width="100%">
+			<s:HGroup id="hg1" horizontalAlign="left" verticalAlign="middle" width="100%">
+				<s:Spacer width="2%"/>
+				<s:TextInput id="input_my" width="70%" maxChars="20"/>
+				<s:Spacer width="1%"/>
+				<s:Label id="label_my" text="(Malaysian)" width="25%" fontSize="15"/>
+				<s:Spacer width="2%"/>
+			</s:HGroup>
+			<s:Spacer width="5"/>
+			<s:HGroup id="hg2" horizontalAlign="left" verticalAlign="middle" width="100%">
+				<s:Spacer width="2%"/>
+				<s:TextInput id="input_en" width="70%" maxChars="20"/>
+				<s:Spacer width="1%"/>
+				<s:Label id="label_en" text="(English)" width="25%" fontSize="15"/>
+				<s:Spacer width="2%"/>
+			</s:HGroup>
+			<s:Spacer width="5"/>
+			<s:HGroup id="hg3" horizontalAlign="left" verticalAlign="middle" width="100%">
+				<s:Spacer width="2%"/>
+				<s:TextInput id="input_de" width="70%" maxChars="20"/>
+				<s:Spacer width="1%"/>
+				<s:Label id="label_de" text="(German)" width="25%" fontSize="15"/>
+				<s:Spacer width="2%"/>
+			</s:HGroup>
+		</s:VGroup>
+		<s:Spacer height="5"/>
+		<s:HGroup verticalAlign="middle" horizontalAlign="right" width="100%">
+			<s:Spacer width="100%"/>
+			<s:Button id="but_add" label="ADD" click="addToDB(event)" fontFamily="Arial" fontSize="15"/>
+			<s:Spacer width="10"/>
+			<s:Button id="but_clear" label="CLEAR" click="clearEntries(event)" fontFamily="Arial" fontSize="15"/>
+			<s:Spacer width="100%"/>
+		</s:HGroup>
+		<s:Spacer height="100%"/>
+	</s:VGroup>
+	
+</s:View>

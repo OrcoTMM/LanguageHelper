@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		title="view_LangInput"
+		contentCreationComplete="creationComplete(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.*;
+			import mx.events.FlexEvent;
+			private var ALL_LANGUAGES:Array =	[
+														{label:"EN", data:"english"},
+														{label:"DE", data:"german"},
+														{label:"MY", data:"malaysian"}
+													];
+			[Bindable]
+			public var languageAC:ArrayCollection;
+			
+			private function initData ():void {
+				languageAC	= new ArrayCollection(ALL_LANGUAGES);
+			}
+			protected function creationComplete (event:FlexEvent):void {
+				initData();
+			}
+			protected function btn_back_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				navigator.popView();
+			}
+			private function getFile(e:MouseEvent):void{
+				if(File.applicationStorageDirectory.resolvePath("importLanguageFiles.txt").exists){
+					return;
+				}
+				
+				////
+				// create the new file  
+				var applicationStorageDirectoryPath:File = File.applicationStorageDirectory;
+				var nativePathToapplicationStorageDirectory:String = File.applicationStorageDirectory.toString();
+				nativePathToapplicationStorageDirectory += "importLanguageFiles.txt";
+				var file:File = new File(nativePathToapplicationStorageDirectory);
+				
+				// write the contents from the other file to the new file
+				var writeStream:FileStream = new FileStream();
+				writeStream.open(file, FileMode.WRITE);
+				writeStream.writeUTF("testme");
+				writeStream.close();
+				
+				
+				/*
+				var fl:File	= File.applicationStorageDirectory;
+				
+				// check to see if the file exists
+				var file:File;
+				file = File.applicationStorageDirectory.resolvePath("importLanguageFiles.txt");
+				
+				// open and “READ” the content of the file
+				var fileStream:FileStream = new FileStream();
+				fileStream.open(file , FileMode.READ);
+				var fileContent:String = fileStream.readUTF();
+				fileStream.close();
+				*/
+			}
+			private function addToDB(e:MouseEvent):void{
+				trace("addDB");
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="left">
+		<s:Spacer height="5"/>
+		<s:HGroup horizontalAlign="left" verticalAlign="middle">
+			<s:Spacer width="5"/>
+			<s:Button id="btn_back" click="btn_back_clickHandler(event)" width="30" height="30" styleName="back"/>
+			<s:Spacer width="10"/>
+			<s:Label left="0" text="Testing translations" fontSize="30" fontWeight="bold"/>
+		</s:HGroup>
+		<s:Spacer width="5"/>
+		<s:Line xFrom="0" xTo="{this.width}">
+			<s:stroke>
+				<s:SolidColorStroke color="0x000000" weight="1" caps="square"/>
+			</s:stroke>
+		</s:Line>
+		<s:Spacer height="10"/>
+		<s:Button id="_getFile" label="Choose file" click="getFile(event)"/>
+		<s:Spacer height="5"/>
+		<s:Button id="_addToDB" label="IMPORT" click="addToDB(event)"/>
+		<s:Spacer height="100%"/>
+	</s:VGroup>
+	
+</s:View>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ViewNavigatorApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							xmlns:s="library://ns.adobe.com/flex/spark" firstView="views.LanguageHelperHomeView" 
+							applicationDPI="240" 
+							width="480" height="800" 
+							creationComplete="viewnavigatorapplication1_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+
+			public var dbFile:File;
+			public var conn:SQLConnection;
+			
+			private var sqlStatement:SQLStatement;
+			private var createVocabularyTable:SQLStatement = new SQLStatement();
+			
+			private var addEntryStore:Vector.<String>;
+			
+			protected function viewnavigatorapplication1_creationCompleteHandler(event:FlexEvent):void
+			{
+				this.applicationDPI	= 233;
+				//connect to DB
+				dbFile = File.applicationStorageDirectory.resolvePath("languageHelper.db");
+				conn = new SQLConnection();
+				conn.addEventListener(SQLErrorEvent.ERROR, errorHandler);
+				conn.addEventListener(SQLEvent.OPEN, openHandler);
+				conn.openAsync(dbFile);
+			}
+			protected function errorHandler(e:SQLErrorEvent):void{
+				trace("conenction could not be opened");
+				conn.removeEventListener(SQLErrorEvent.ERROR,errorHandler);
+				conn.removeEventListener(SQLEvent.OPEN, openHandler); 
+			}
+			protected function openHandler(e:SQLEvent):void{
+				trace("conenction opened");
+				conn.removeEventListener(SQLEvent.OPEN, openHandler);
+				//create DB and TABLE if not exist yet
+				createVocabularyTable.sqlConnection	= conn;
+				createVocabularyTable.text			= "CREATE TABLE IF NOT EXISTS VocabularyTable(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+																"voc_malay TEXT, " +
+																"voc_english TEXT, " +
+																"voc_german TEXT, " +
+																"repeat_count INTEGER, " +
+																"history TEXT, " +
+																"current_exercise_batch BOOLEAN)";
+				createVocabularyTable.addEventListener(SQLEvent.RESULT, createResult); 
+				createVocabularyTable.addEventListener(SQLErrorEvent.ERROR, createError); 
+				createVocabularyTable.execute();
+			}
+			protected function createResult(e:SQLEvent):void{
+				trace("table creation successful");
+				createVocabularyTable.removeEventListener(SQLEvent.RESULT, createResult);
+				createVocabularyTable.removeEventListener(SQLErrorEvent.ERROR, createError);
+				createVocabularyTable	= null;
+				conn.close();
+			}
+			protected function createError(e:SQLErrorEvent):void{
+				trace("table creation failed");
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Style source="main.css"/>
+</s:ViewNavigatorApplication>

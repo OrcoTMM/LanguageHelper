@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		title="view_langTester"
+		contentCreationComplete="creationComplete(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.dbClasses.DBManager;
+			import com.vo.dbEntryItem;
+			
+			import events.DBEvent;
+			
+			import mx.collections.ArrayList;
+			import mx.events.FlexEvent;
+			
+			private var _dbManager:DBManager;
+			private var myArray:Array 			= new Array("me","I","yourself");
+			[Bindable]
+			private var myList_dp:ArrayList		= new ArrayList(myArray);
+			
+			private var currSelection:String	= "";
+			
+			/* protected function BackBtn(event:MouseEvent):void{
+				navigator.popView(); 
+			} */
+			
+			protected function btn_back_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				navigator.popView();
+			}
+			
+			protected function checkInput(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				trace("WOW THIS WORKS");
+			}
+			
+			protected function creationComplete(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				trace("clickedAdd");
+				if(_dbManager)
+				{
+					getSQL();
+				}else{
+					_dbManager	= new DBManager();
+					_dbManager.addEventListener(DBEvent.DB_FAILED, onDBFailed);
+					_dbManager.addEventListener(DBEvent.DB_SUCCESS, onDBSuccess);
+					_dbManager.addEventListener(DBEvent.DB_BUSY, onDBBusy);
+					_dbManager.addEventListener(DBEvent.SQL_FAILED, onSQLFailed);
+					_dbManager.addEventListener(DBEvent.SQL_SELECTED, onSQLSelected);
+					_dbManager.initialise();
+				}
+//				myList.dataProvider		= myList_dp;
+//				myList.visible			= true;
+			}
+			private function onDBFailed(e:DBEvent):void{
+				trace("onDBFailed");
+				}
+			private function onDBSuccess(e:DBEvent):void{
+				getSQL();
+			}
+			private function onDBBusy(e:DBEvent):void{
+				trace("onDBBusy");
+				}
+			private function onSQLFailed(e:DBEvent):void{
+				trace("onSQLFailed");
+				}
+			private function onSQLSelected(e:DBEvent):void{
+				trace("onSQLSelected");
+			}
+			private function getSQL():void{
+				var _sqlVo:dbEntryItem	= new dbEntryItem();
+				_sqlVo.voc_Malay	= "bunga";
+				_dbManager.selectEntry(_sqlVo);
+			}
+			protected function selectionCheck(event:MouseEvent):void
+			{
+//				currSelection != "" ? (this[currSelection] as CheckBox).selected = false : true;
+				switch(event.target.id){
+					case "grp1":
+						currSelection		= "box1";
+						box1.selected		= !box1.selected;
+						break;
+					case "grp2":
+						currSelection		= "box2";
+						box2.selected		= !box2.selected;
+						break;
+//					case "grp3":
+//						currSelection		= "box3";
+//						box3.selected	= true;
+//						break;
+					default:
+						break;
+				}
+				trace("selected id: "+event.target.id);
+				trace("selected name: "+event.target.name);
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function selectionCheckTouch(event:TouchEvent):void
+			{
+				trace("touch");
+				// TODO Auto-generated method stub
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:VGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="left">
+		<s:Spacer height="5"/>
+		<s:HGroup horizontalAlign="left" verticalAlign="middle">
+			<s:Spacer width="5"/>
+			<s:Button id="btn_back" click="btn_back_clickHandler(event)" width="30" height="30" styleName="back"/>
+			<s:Spacer width="10"/>
+			<s:Label left="0" text="Testing translations" fontSize="30" fontWeight="bold"/>
+		</s:HGroup>
+		<s:Spacer width="5"/>
+		<s:Line xFrom="0" xTo="{this.width}">
+			<s:stroke>
+				<s:SolidColorStroke color="0x000000" weight="1" caps="square"/>
+			</s:stroke>
+		</s:Line>
+		<s:Spacer height="10"/>
+		<s:HGroup id="grp1" buttonMode="true" click="selectionCheck(event)" width="100%" mouseChildren="false" horizontalAlign="left">
+			<s:Spacer width="5"/>
+			<s:CheckBox id="box1"/>
+			<s:Spacer width="5"/>
+			<s:Label id="lable1" textAlign="left" text="selection1"/>
+			<s:Spacer/>
+		</s:HGroup>
+		<s:HGroup id="grp2" buttonMode="true" click="selectionCheck(event)" width="100%" mouseChildren="false" horizontalAlign="left">
+			<s:Spacer width="5"/>
+			<s:CheckBox id="box2"/>
+			<s:Spacer width="5"/>
+			<s:Label id="lable2" textAlign="left" text="selection2"/>
+			<s:Spacer/>
+		</s:HGroup>
+		<s:Spacer height="5"/>
+		<s:Button label="Check" click="checkInput(event)" width="100" height="30" textAlignLast="center"/>
+		<s:Spacer height="5"/>
+		<s:Spacer height="100%"/>
+	</s:VGroup>
+	
+</s:View>
